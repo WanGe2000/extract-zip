@@ -1,6 +1,6 @@
 const debug = require('debug')('extract-zip')
 // eslint-disable-next-line node/no-unsupported-features/node-builtins
-const { createWriteStream, promises: fs } = require('fs')
+const { createWriteStream, promises: fs, realpath } = require('fs')
 const getStream = require('get-stream')
 const path = require('path')
 const { promisify } = require('util')
@@ -9,6 +9,7 @@ const yauzl = require('yauzl')
 
 const openZip = promisify(yauzl.open)
 const pipeline = promisify(stream.pipeline)
+const realpathPromised = promisify(realpath)
 
 class Extractor {
   constructor (zipPath, opts) {
@@ -55,7 +56,7 @@ class Extractor {
         try {
           await fs.mkdir(destDir, { recursive: true })
 
-          const canonicalDestDir = await fs.realpath(destDir)
+          const canonicalDestDir = await realpathPromised(destDir)
           const relativeDestDir = path.relative(this.opts.dir, canonicalDestDir)
 
           if (relativeDestDir.split(path.sep).includes('..')) {
